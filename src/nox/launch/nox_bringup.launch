@@ -1,0 +1,44 @@
+<launch>
+				<!--  ************** Odometry ***************  -->
+	<arg name="gui" default="false" />
+	<param name="use_gui" value="$(arg gui)"/>
+	<param name="robot_description" command="cat $(find nox_description)/urdf/nox.urdf" />
+   <!--param name="robot_description" textfile="$(find gbot_core)/urdf/head_2d.urdf" /-->
+	
+	<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+	
+	<node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+	
+	<node name="serial_node" pkg="rosserial_python" type="serial_node.py">
+		<param name="port" value="/dev/ttyACM0"/>
+	</node>
+
+<!-- Start Google Cartographer node with custom configuration file>
+    <node name="cartographer_node" pkg="cartographer_ros" type="cartographer_node" args="
+          -configuration_directory
+              $(find gbot_core)/configuration_files
+          -configuration_basename gbot_lidar_2d.lua" output="screen">
+    </node-->
+<!-- Additional node which converts Cartographer map into ROS occupancy grid map. Not used and can be skipped in this case >
+    <node name="cartographer_occupancy_grid_node" pkg="cartographer_ros" type="cartographer_occupancy_grid_node" args="-resolution 0.05" /-->
+
+		
+	<node name="nox_controller" pkg="nox" type="nox_controller">
+		<param name="publish_tf" value="true" />
+    		<param name="publish_rate" value="10.0" />
+    		<param name="linear_scale_positive" value="1.025" />
+    		<param name="linear_scale_negative" value="1.025" />
+    		<param name="angular_scale_positive" value="1.078" />
+    		<param name="angular_scale_negative" value="1.078" />
+		<param name="angular_scale_accel" value="0.0" />
+	</node>	
+
+<include file="$(find rplidar_ros)/launch/rplidar.launch" />
+	
+				<!--  ************** Sensors ***************  -->
+	<!--include file="$(find freenect_launch)/launch/freenect.launch" />
+	<node name="depthimage_to_laserscan" pkg="depthimage_to_laserscan" type="depthimage_to_laserscan">
+		<remap from="image" to="camera/depth/image_raw" />
+	</node-->
+	
+</launch>
